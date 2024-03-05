@@ -1,5 +1,5 @@
 'use client';
-
+import Link from 'next/link';
 export default function HomePage() {
   return (
     <div>
@@ -16,9 +16,11 @@ export default function HomePage() {
         <p className='text-xl mb-5'>
           Click the below button to register and start using Discord Bot
         </p>
-        <button className='bg-white font-semibold hover:text-[#404EED] rounded-full p-2 hover:drop-shadow-2xl transition-transform'>
-          Click here
-        </button>
+        <Link href='/signup'>
+          <button className='bg-white font-semibold hover:text-[#404EED] rounded-full p-2 hover:drop-shadow-2xl transition-transform'>
+            Click here
+          </button>
+        </Link>
       </div>
     </div>
   );
