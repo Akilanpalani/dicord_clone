@@ -3,8 +3,9 @@
 import axios from "axios";
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+
+import { useModal } from "@/hooks/use-modal-store";
 import { useForm } from 'react-hook-form';
-import { useState,useEffect } from 'react';
 import { useRouter } from "next/navigation";
 
 import {
@@ -38,14 +39,13 @@ const formSchema = z.object({
   }),
 });
 
-export const InitialModel = () => {
-  const [isMounted, setIsMounted] = useState(false);
+export const CreateServerModal = () => {
 
+  const {isOpen, onClose,type} = useModal();
   const router = useRouter();
 
-  useEffect(()=>{
-    setIsMounted(true)
-  },[])
+  const isModalOpen = isOpen && type === "CreateServer";
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -61,19 +61,19 @@ export const InitialModel = () => {
 
       form.reset();
       router.refresh();
-      window.location.reload();
+      onClose()
     } catch(error){
       console.log(error)
     }
   };
 
-  if(!isMounted){
-    return null;
+  const handleClose = () => {
+    form.reset();
+    onClose();
   }
-
   return (
     <div className='h-full m-10'>
-    <Dialog open={true}>
+    <Dialog open={isModalOpen} onOpenChange={handleClose}>
       <DialogContent className='bg-white text-black p-0 overflow-hidden'>
         <DialogHeader className='pt-4 px-3'>
           <DialogTitle className='text-2xl text-center font-semibold'>
