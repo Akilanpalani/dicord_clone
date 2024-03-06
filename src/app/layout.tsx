@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
 import {ClerkProvider} from "@clerk/nextjs"
 import "./globals.css";
-import Navbar from "./nav/Navbar";
+
+// import Navbar from "./nav/Navbar";
+import { ModalProvider } from "@/components/providers/modal-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { cn } from '../lib/utils';
 
@@ -29,7 +31,8 @@ export default function RootLayout({
         enableSystem={false}
         storageKey="discord-theme"
         >
-        {children}
+          <ModalProvider />
+            {children}
         </ThemeProvider>
       </body>
     </html>
