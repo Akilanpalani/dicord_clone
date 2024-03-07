@@ -2,6 +2,7 @@
 
 import { ServerWithMembersWithProfiles } from '@/types';
 import { MemberRole } from '@prisma/client';
+import { useModal } from '@/hooks/use-modal-store';
 
 import {
   DropdownMenu,
@@ -26,6 +27,8 @@ interface ServerHeaderProps {
 }
 
 export const ServerHeader = ({ server, role }: ServerHeaderProps) => {
+  const {onOpen} = useModal();
+
   const isAdmin = role === MemberRole.ADMIN;
   const isModerator = isAdmin || role === MemberRole.MODERATOR;
   return (
@@ -39,7 +42,10 @@ export const ServerHeader = ({ server, role }: ServerHeaderProps) => {
       <DropdownMenuContent className='w-56 text-xs font-medium text-black dark:text-neutral-400 space-y-[2px]'>
         {/* Moderator */}
         {isModerator && (
-          <DropdownMenuItem className='text-indigo-600 dark:text-indigo-400 py-2 px-3 text-sm cursor-pointer'>
+          <DropdownMenuItem 
+            className='text-indigo-600 dark:text-indigo-400 py-2 px-3 text-sm cursor-pointer'
+            onClick={()=>onOpen("InvitePeople",{server})}
+            >
             Invite People
             <UserPlus className='w-4 h-4 ml-auto' />
           </DropdownMenuItem>
@@ -47,7 +53,9 @@ export const ServerHeader = ({ server, role }: ServerHeaderProps) => {
         
         {/* Admin */}
         {isAdmin && (
-          <DropdownMenuItem className='py-2 px-3 text-sm cursor-pointer'>
+          <DropdownMenuItem className='py-2 px-3 text-sm cursor-pointer'
+            onClick={()=>onOpen("editServer",{server})}
+          >
             Server Setting
             <Settings className='w-4 h-4 ml-auto' />
           </DropdownMenuItem>
@@ -55,7 +63,9 @@ export const ServerHeader = ({ server, role }: ServerHeaderProps) => {
 
         {/* Admin Manage Members */}
         {isAdmin && (
-          <DropdownMenuItem className='py-2 px-3 text-sm cursor-pointer'>
+          <DropdownMenuItem className='py-2 px-3 text-sm cursor-pointer'
+          onClick={()=>onOpen("members",{server})}
+          >
             Manage Members
             <Users className='w-4 h-4 ml-auto' />
           </DropdownMenuItem>

@@ -1,4 +1,4 @@
-import { redirect } from "next/dist/server/api-utils";
+import { redirect } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 
 import { NavigationItem } from "@/components/navigation/navigation-item";
@@ -10,11 +10,11 @@ import {db} from '@/lib/db'
 
 import { NavigationAction } from "./navigation-action";
 
-export const NavigationSidebar = async (req:any,res:any) => {
+export const NavigationSidebar = async () => {
   const profile = await currentProfile();
 
   if(!profile){
-    redirect(res,302,"/");
+    redirect("/");
     return null;
   }
 
