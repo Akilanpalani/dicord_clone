@@ -32,6 +32,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useEffect } from "react";
 
 const formSchema = z.object({
   name: z.string().min(1, {
@@ -47,19 +48,29 @@ const formSchema = z.object({
 
 export const CreateChannelModal = () => {
 
-  const {isOpen, onClose,type} = useModal();
+  const {isOpen, onClose,type,data} = useModal();
   const router = useRouter();
   const params = useParams();
 
   const isModalOpen = isOpen && type === "CreateChannel";
+  const {channelType} = data;
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      type: ChannelType.TEXT
+      type: channelType || ChannelType.TEXT
     },
   });
+
+  useEffect(() => {
+    if(channelType){
+      form.setValue("type", channelType);
+    }
+    else{
+      form.setValue("type", ChannelType.TEXT);
+    }
+  },[channelType,form])
 
   const isLoading = form.formState.isValidating;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -156,7 +167,7 @@ export const CreateChannelModal = () => {
               />
             </div>
             <DialogFooter className='bg-gray-100 px-6 py-4'>
-              <Button variant="primary" disabled={isLoading}>Create Server</Button>
+              <Button variant="primary" disabled={isLoading}>Create</Button>
             </DialogFooter>
           </form>
         </Form>
