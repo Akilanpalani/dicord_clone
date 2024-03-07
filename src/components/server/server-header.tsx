@@ -73,7 +73,9 @@ export const ServerHeader = ({ server, role }: ServerHeaderProps) => {
 
         {/* Create Channel */}
         {isModerator && (
-          <DropdownMenuItem className='py-2 px-3 text-sm cursor-pointer'>
+          <DropdownMenuItem className='py-2 px-3 text-sm cursor-pointer'
+            onClick={()=>onOpen("CreateChannel")}
+          >
             Create Channel
             <PlusCircle className='w-4 h-4 ml-auto' />
           </DropdownMenuItem>
@@ -86,7 +88,9 @@ export const ServerHeader = ({ server, role }: ServerHeaderProps) => {
 
          {/* Delete Server */}
          {isAdmin && (
-          <DropdownMenuItem className='text-rose-500 py-2 px-3 text-sm cursor-pointer'>
+          <DropdownMenuItem className='text-rose-500 py-2 px-3 text-sm cursor-pointer'
+            onClick={()=>onOpen("deleteServer",{server})}
+          >
             Delete Server
             <Trash className='w-4 h-4 ml-auto' />
           </DropdownMenuItem>
@@ -94,7 +98,9 @@ export const ServerHeader = ({ server, role }: ServerHeaderProps) => {
 
         {/* Leave Server */}
         {!isAdmin && (
-          <DropdownMenuItem className='text-rose-500 py-2 px-3 text-sm cursor-pointer'>
+          <DropdownMenuItem className='text-rose-500 py-2 px-3 text-sm cursor-pointer'
+            onClick={()=>onOpen("leaveServer",{server})}
+          >
             Leave Server
             <LogOut className='w-4 h-4 ml-auto' />
           </DropdownMenuItem>
