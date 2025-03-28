@@ -1,0 +1,113 @@
+name: PR Notification to Google Space
+on:
+  pull_request_target:
+    types:
+      - opened
+      - closed
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Convert timestam to IST
+        id: convert-time
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tzdata
+
+          CREATED_AT_IST=""
+          MERGED_AT_IST=""
+
+          if [[ -n "${{ github.event.pull_request.created_at }}" ]]; then
+            CREATED_AT_IST=$(TZ=Asia/Kolkata date -d "${{ github.event.pull_request.created_at}}" "+%Y-%m-%d %H:%M:%S")
+          fi
+          
+          if [[ -n "${{ github.event.pull_request.merged_at }}" ]]; then
+            MERGED_AT_IST=$(TZ=Asia/Kolkata date -d "${{ github.event.pull_request.merged_at}}" "+%Y-%m-%d %H:%M:%S")
+          fi
+
+          echo "created_at_ist=${CREATED_AT_IST}" >> $GITHUB_OUTPUT
+          echo "merged_at_ist=${MERGED_AT_IST}" >> $GITHUB_OUTPUT
+
+      - name: Send message to Google Space
+        if: github.event_name == 'opened' || github.event.pull_request.merged == true
+        env: 
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_CREATOR: ${{ github.event.pull_request.user.login }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+          PR_REVIEWERS: ${{ join(github.event.pull_request.requested_reviewers.*.login, ', ') || 'None' }}
+          PR_MERGER: ${{ github.event.pull_request.merged_by.login || 'N/A' }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_CREATED_AT_IST: ${{ steps.convert-time.outputs.created_at_ist }}
+          PR_MERGED_AT_IST: ${{ steps.convert-time.outputs.merged_at_ist }}
+        run: |
+          EVENT_TYPE="${{ github.event.pull_request.merged && 'Merged' || 'Created' }}"
+
+          # Construct the card-based message with correct Google Chat API format
+          if [ "EVENT_TYPE" = "Merged" ]; then
+            CARD_JSON= '{
+              "cards":[{
+                "header":{
+                  "title": "✅ PR Merged",
+                  "subtitle": "'"$PR_TITLE"'"
+                  },
+                  "section":[{
+                      "widgets":[
+                        {"textParagraph": {"text": "<b>🔄 From:</b> '"$PR_HEAD → $PR_BASE"'"}},
+                        {"textParagraph": {"text": "<b>👤 Created by:</b> '"$PR_CREATOR"'"}},
+                        {"textParagraph": {"text": "<b>👀 Reviewers:</b> '"$PR_REVIEWERS"'"}},
+                        {"textParagraph": {"text": "<b>✅ Merged by:</b> '"$PR_MERGER"'"}},
+                        {"textParagraph": {"text": "<b>📅 Created at:</b> '"$PR_CREATED_AT_IST"'"}},
+                        {"textParagraph": {"text": "<b>🕒 Merged at:</b> '"$PR_MERGED_AT_IST"'"}}
+                    ]
+                  }, {
+                    "widgets": [{
+                      "buttons": [{
+                        "textButton": {
+                          "text": "🔗 View Pull Request",
+                          "onClick": {
+                            "openLink": {
+                              "url": "'"$PR_URL"'"
+                            }
+                          }
+                        }
+                      }]
+                    }]
+                  }]
+                }]
+            }'
+            else
+              CARD_JSON='{
+                "cards": [{
+                  "header": {
+                    "title": "🚀 New PR Created",
+                    "subtitle": "'"$PR_TITLE"'"
+                  },
+                  "section": [{
+                    "widgets": [
+                      {"textParagraph": {"text": "<b>🔄 From:</b> '"$PR_HEAD → $PR_BASE"'"}},
+                      {"textParagraph": {"text": "<b>👤 Created by:</b> '"$PR_CREATOR"'"}},
+                      {"textParagraph": {"text": "<b>👀 Reviewers:</b> '"$PR_REVIEWERS"'"}},
+                      {"textParagraph": {"text": "<b>📅 Created at:</b> '"$PR_CREATED_AT_IST"'"}}
+                  }, {
+                    "widgets": [{
+                      buttons:[{
+                        "textbutton": {
+                          "text":"🔗 View Pull Request",
+                          "onClick": {
+                            "openLink": {
+                              "url": "'"$PR_URL"'"
+                            }
+                          }
+                        }
+                      }]
+                    }]
+                  }]
+                }]
+              }'
+            fi
+
+            # Send the card-based message to Google Chat API
+            curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d "$CARD_JSON"
